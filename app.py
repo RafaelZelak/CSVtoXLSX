@@ -113,6 +113,22 @@ def process_csv_to_excel(csv_file_path, output_file_path):
 
     wb.save(output_file_path)
 
+def validate_csv_format(csv_file_path):
+    """Valida se o arquivo CSV contém as colunas necessárias."""
+    required_columns = ['CNPJ', 'Sócios (Nome, Faixa Etária, Qualificação, Data Entrada)', 'Horários de Funcionamento']  # Adicione aqui as colunas obrigatórias
+    try:
+        df = pd.read_csv(csv_file_path, nrows=1)  # Lê apenas a primeira linha para verificar as colunas
+    except Exception as e:
+        messagebox.showerror("Erro", f"Falha ao ler o arquivo CSV: {e}")
+        return False
+
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        messagebox.showerror("Erro", f"Colunas ausentes no CSV: {', '.join(missing_columns)}")
+        return False
+
+    return True
+
 def select_csv_file():
     csv_file_path = ctk.filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
     if csv_file_path:
@@ -129,6 +145,10 @@ def convert_file():
     csv_file_path = csv_entry.get()
     output_directory = folder_entry.get()
     if csv_file_path and output_directory:
+        # Validação do arquivo CSV antes da conversão
+        if not validate_csv_format(csv_file_path):
+            return  # Se o CSV não for válido, retorna e espera um novo arquivo
+
         output_file_name = entry.get() + ".xlsx"
         output_file_path = os.path.join(output_directory, output_file_name)
         process_csv_to_excel(csv_file_path, output_file_path)
